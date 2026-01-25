@@ -17,7 +17,7 @@ variables:
   # AKS / Helm
   aksResourceGroup: 'terraform-dev'
   aksClusterName: 'demo-aks'
-  helmReleaseName: 'lgexample'
+  helmReleaseName: 'lg-nginx-static-example'
   helmChartPath: 'helm/app'
 
   # Agent
