@@ -5,7 +5,7 @@ FROM nginx:alpine
 RUN rm -rf /usr/share/nginx/html/*
 
 # Copy your static files into the container
-COPY ./public /usr/share/nginx/html
+COPY ./src/public /usr/share/nginx/html
 
 # Optional: copy custom nginx.conf
 # COPY nginx.conf /etc/nginx/conf.d/default.conf
