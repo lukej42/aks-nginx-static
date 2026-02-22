@@ -7,7 +7,7 @@ resources:
 
 variables:
   # Container registry service connection established during pipeline creation
-  dockerRegistryServiceConnection: 'e6335074-cd46-4323-b9b3-6d4667e283a5'
+  dockerRegistryServiceConnection: '444700ad-1b07-4f80-b92b-b51d4c391708'
   imageRepository: 'lgexample654'
   containerRegistry: 'lgexample654.azurecr.io'
   dockerfilePath: '**/Dockerfile'
@@ -15,7 +15,7 @@ variables:
 
 
   # AKS / Helm
-  aksResourceGroup: 'terraform-dev'
+  aksResourceGroup: 'terraform'
   aksClusterName: 'demo-aks'
   helmReleaseName: 'lg-nginx-static-example'
   helmChartPath: 'helm/app'
