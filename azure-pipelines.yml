@@ -18,7 +18,7 @@ variables:
   aksResourceGroup: 'terraform'
   aksClusterName: 'demo-aks'
   helmReleaseName: 'lg-nginx-static-example'
-  helmChartPath: 'helm/app'
+  helmChartPath: 'helm/nginx-static-app'
 
   # Agent
   vmImageName: 'ubuntu-latest'
