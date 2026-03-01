@@ -2,8 +2,12 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "app.fullname" . }}
+  labels:
+    app: {{ .Release.Name }}
 spec:
+{{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
+{{- end }}
   selector:
     matchLabels:
       app: {{ .Release.Name }}
@@ -25,3 +29,6 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 80
+          # New: Link resources from values.yaml
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

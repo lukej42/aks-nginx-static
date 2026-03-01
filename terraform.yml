@@ -1,0 +1,155 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pr:
+  branches:
+    include:
+      - "*"
+
+variables:
+  terraformVersion: '1.6.6'
+  serviceConnection: 'Azure-Service-Connection'
+
+stages:
+
+- stage: Validate
+  displayName: "Terraform Validate & Plan (PR Only)"
+  condition: eq(variables['Build.Reason'], 'PullRequest')
+  jobs:
+    - job: Validate
+      pool:
+        vmImage: 'ubuntu-latest'
+      steps:
+
+        - task: TerraformInstaller@1
+          inputs:
+            terraformVersion: $(terraformVersion)
+
+        - script: terraform fmt -check -recursive
+          displayName: "Terraform Format Check"
+
+        - script: terraform validate
+          displayName: "Terraform Validate"
+
+        - script: |
+            cd dev
+            terraform init -backend=false
+            terraform plan
+          displayName: "Terraform Plan (Dev)"
+
+# Dev
+- stage: Dev
+  displayName: "Deploy to Dev"
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  jobs:
+    - deployment: DeployDev
+      environment: Dev
+      pool:
+        vmImage: 'ubuntu-latest'
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+
+              - task: TerraformInstaller@1
+                inputs:
+                  terraformVersion: $(terraformVersion)
+
+              - task: AzureCLI@2
+                inputs:
+                  azureSubscription: $(serviceConnection)
+                  scriptType: bash
+                  scriptLocation: inlineScript
+                  inlineScript: |
+                    cd dev
+                    terraform init
+                    terraform apply -auto-approve
+
+# UAT
+
+- stage: UAT
+  displayName: "Deploy to UAT"
+  dependsOn: Dev
+  jobs:
+    - deployment: DeployUAT
+      environment: UAT
+      pool:
+        vmImage: 'ubuntu-latest'
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+
+              - task: TerraformInstaller@1
+                inputs:
+                  terraformVersion: $(terraformVersion)
+
+              - task: AzureCLI@2
+                inputs:
+                  azureSubscription: $(serviceConnection)
+                  scriptType: bash
+                  scriptLocation: inlineScript
+                  inlineScript: |
+                    cd uat
+                    terraform init
+                    terraform apply -auto-approve
+
+# Stage
+
+- stage: Stage
+  displayName: "Deploy to Stage"
+  dependsOn: UAT
+  jobs:
+    - deployment: DeployStage
+      environment: Stage
+      pool:
+        vmImage: 'ubuntu-latest'
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+
+              - task: TerraformInstaller@1
+                inputs:
+                  terraformVersion: $(terraformVersion)
+
+              - task: AzureCLI@2
+                inputs:
+                  azureSubscription: $(serviceConnection)
+                  scriptType: bash
+                  scriptLocation: inlineScript
+                  inlineScript: |
+                    cd stage
+                    terraform init
+                    terraform apply -auto-approve
+
+# Prod
+
+- stage: Prod
+  displayName: "Deploy to Production"
+  dependsOn: Stage
+  jobs:
+    - deployment: DeployProd
+      environment: Prod
+      pool:
+        vmImage: 'ubuntu-latest'
+      strategy:
+        runOnce:
+          deploy:
+            steps:
+
+              - task: TerraformInstaller@1
+                inputs:
+                  terraformVersion: $(terraformVersion)
+
+              - task: AzureCLI@2
+                inputs:
+                  azureSubscription: $(serviceConnection)
+                  scriptType: bash
+                  scriptLocation: inlineScript
+                  inlineScript: |
+                    cd prod
+                    terraform init
+                    terraform apply -auto-approve
